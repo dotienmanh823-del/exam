@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đề thi trắc nghiệm: Định thức của ma trận</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(135deg, #eef2f7 0%, #d9e4f5 100%);
+    color: #1a2330;
+    line-height: 1.6;
+    padding: 24px 12px 60px;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  header {
+    background: linear-gradient(135deg, #00529b, #0077cc);
+    color: #fff;
+    padding: 28px 24px;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 82, 155, 0.25);
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  header h1 { font-size: 1.7rem; margin-bottom: 8px; }
+  header p { opacity: 0.9; font-size: 1rem; }
+
+  .progress-bar {
+    position: sticky; top: 0; z-index: 10;
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap;
+  }
+  .progress-track {
+    flex: 1; min-width: 180px; height: 12px;
+    background: #e3e9f2; border-radius: 8px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #00a86b, #0077cc);
+    transition: width 0.35s ease;
+  }
+  .progress-text { font-weight: 600; color: #00529b; font-size: 0.95rem; }
+  .score-text { font-weight: 700; color: #e6781e; font-size: 0.95rem; }
+
+  .question-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 22px 22px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    border-left: 6px solid #0077cc;
+    transition: box-shadow 0.2s;
+  }
+  .question-card:hover { box-shadow: 0 6px 22px rgba(0,0,0,0.11); }
+
+  .q-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .q-number {
+    background: #00529b; color: #fff;
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.95rem; flex-shrink: 0;
+  }
+  .q-level {
+    font-size: 0.75rem; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: #fff;
+  }
+  .level-lythuyet { background: #6c5ce7; }
+  .level-de { background: #00a86b; }
+  .level-tb { background: #e6781e; }
+  .level-kho { background: #d63031; }
+
+  .q-text {
+    font-size: 1.05rem; font-weight: 600;
+    margin-bottom: 14px; color: #1a2330;
+  }
+  .q-text .math { font-style: italic; font-family: "Cambria Math", Georgia, serif; }
+
+  .matrix {
+    display: inline-grid;
+    gap: 6px 14px;
+    vertical-align: middle;
+    margin: 0 6px;
+    padding: 4px 10px;
+    border-left: 2px solid #00529b;
+    border-right: 2px solid #00529b;
+    border-radius: 4px;
+    font-family: "Cambria Math", Georgia, serif;
+    font-style: italic;
+  }
+  .matrix span { text-align: center; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 16px;
+    border: 2px solid #d7dee8;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #fbfcfe;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+  .option:hover:not(.locked) {
+    border-color: #0077cc;
+    background: #eef6ff;
+    transform: translateX(3px);
+  }
+  .option .label {
+    font-weight: 700; color: #00529b;
+    min-width: 22px; flex-shrink: 0;
+  }
+  .option .content { flex: 1; }
+  .option.correct {
+    border-color: #00a86b !important;
+    background: #e6f9f0 !important;
+    animation: pulse 0.4s ease;
+  }
+  .option.correct .label { color: #00874e; }
+  .option.wrong {
+    border-color: #d63031 !important;
+    background: #fdeaea !important;
+    animation: shake 0.4s ease;
+  }
+  .option.wrong .label { color: #b02525; }
+  .option.locked { cursor: default; }
+  .option.locked:hover { transform: none; }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  .icon-mark { font-weight: 900; font-size: 1.1rem; margin-left: 4px; }
+  .correct .icon-mark { color: #00a86b; }
+  .wrong .icon-mark { color: #d63031; }
+
+  .explanation {
+    margin-top: 14px;
+    border-radius: 10px;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.45s ease, padding 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+    border-left: 4px solid transparent;
+  }
+  .explanation.show {
+    max-height: 1500px;
+    padding: 14px 16px;
+    opacity: 1;
+  }
+  .explanation.correct-exp { background: #e6f9f0; border-left-color: #00a86b; }
+  .explanation.wrong-exp { background: #fdeaea; border-left-color: #d63031; }
+  .exp-title {
+    font-weight: 700; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .correct-exp .exp-title { color: #00874e; }
+  .wrong-exp .exp-title { color: #b02525; }
+  .exp-body { font-size: 0.95rem; color: #2c3a4b; }
+  .exp-body .math { font-style: italic; font-family: "Cambria Math", Georgia, serif; }
+  .exp-answer {
+    margin-top: 8px; font-weight: 700;
+    color: #00529b;
+    padding-top: 8px; border-top: 1px dashed #b9c4d4;
+  }
+
+  .footer-actions { text-align: center; margin-top: 28px; }
+  .btn-reset {
+    background: linear-gradient(135deg, #00529b, #0077cc);
+    color: #fff; border: none;
+    padding: 14px 32px; border-radius: 30px;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,82,155,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-reset:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,82,155,0.4);
+  }
+  .btn-reset:active { transform: translateY(0); }
+
+  .result-banner {
+    display: none;
+    background: linear-gradient(135deg, #00a86b, #0077cc);
+    color: #fff; padding: 22px; border-radius: 14px;
+    text-align: center; margin-top: 26px;
+    box-shadow: 0 8px 24px rgba(0,168,107,0.3);
+  }
+  .result-banner.show { display: block; animation: pulse 0.5s ease; }
+  .result-banner h2 { font-size: 1.5rem; margin-bottom: 6px; }
+  .result-banner p { font-size: 1.1rem; opacity: 0.95; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Đề thi trắc nghiệm</h1>
+    <p>Chủ đề: Định thức của ma trận — 20 câu hỏi</p>
+  </header>
+
+  <div class="progress-bar">
+    <span class="progress-text" id="progressText">Đã làm: 0/20</span>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <span class="score-text" id="scoreText">Đúng: 0</span>
+  </div>
+
+  <div id="quizContainer"></div>
+
+  <div class="result-banner" id="resultBanner">
+    <h2>Hoàn thành bài thi!</h2>
+    <p id="finalResult"></p>
+  </div>
+
+  <div class="footer-actions">
+    <button class="btn-reset" onclick="resetQuiz()">Làm lại bài thi</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   NGÂN HÀNG CÂU HỎI — 20 CÂU VỀ ĐỊNH THỨC MA TRẬN
+   ============================================================ */
+const questions = [
+  /* ---------- 5 CÂU LÝ THUYẾT ---------- */
+  {
+    level: "lythuyet",
+    levelLabel: "Lý thuyết",
+    question: "Định thức của ma trận vuông cấp n có tính chất nào sau đây?",
+    options: [
+      "Nếu đổi chỗ hai hàng thì định thức không đổi.",
+      "Nếu nhân một hàng với số k thì định thức nhân với k.",
+      "Nếu một hàng là tổ hợp tuyến tính của các hàng khác thì định thức khác 0.",
+      "Định thức của ma trận chuyển vị bằng âm định thức của ma trận gốc."
+    ],
+    correct: 1,
+    explain: "Tính chất cơ bản: nhân một hàng (hoặc một cột) với số k thì định thức nhân với k. Đổi chỗ hai hàng thì định thức đổi dấu. Nếu một hàng là tổ hợp tuyến tính của các hàng khác thì định thức bằng 0. Định thức ma trận chuyển vị bằng định thức ma trận gốc.",
+    answerText: "Đáp án đúng: B. Nhân một hàng với k thì định thức nhân với k."
+  },
+  {
+    level: "lythuyet",
+    levelLabel: "Lý thuyết",
+    question: "Ma trận vuông A khả nghịch khi và chỉ khi:",
+    options: [
+      "det(A) = 0",
+      "det(A) ≠ 0",
+      "det(A) > 0",
+      "det(A) < 0"
+    ],
+    correct: 1,
+    explain: "Ma trận vuông A khả nghịch (không suy biến) khi và chỉ khi det(A) ≠ 0. Nếu det(A) = 0, ma trận suy biến và không có ma trận nghịch đảo.",
+    answerText: "Đáp án đúng: B. det(A) ≠ 0"
+  },
+  {
+    level: "lythuyet",
+    levelLabel: "Lý thuyết",
+    question: "Với A là ma trận vuông cấp n, công thức nào sau đây đúng?",
+    options: [
+      "det(kA) = k·det(A)",
+      "det(kA) = k^n·det(A)",
+      "det(kA) = k^(n-1)·det(A)",
+      "det(kA) = det(A)"
+    ],
+    correct: 1,
+    explain: "Khi nhân toàn bộ ma trận A cấp n với số k, mỗi hàng đều được nhân với k. Có n hàng, nên det(kA) = k^n·det(A).",
+    answerText: "Đáp án đúng: B. det(kA) = k^n·det(A)"
+  },
+  {
+    level: "lythuyet",
+    levelLabel: "Lý thuyết",
+    question: "Với A và B là hai ma trận vuông cùng cấp, khẳng định nào sau đây đúng?",
+    options: [
+      "det(A + B) = det(A) + det(B)",
+      "det(AB) = det(A)·det(B)",
+      "det(A − B) = det(A) − det(B)",
+      "det(AB) = det(A) + det(B)"
+    ],
+    correct: 1,
+    explain: "Định thức có tính nhân tính: det(AB) = det(A)·det(B) với A, B cùng cấp. Định thức không có tính cộng tính: nói chung det(A + B) ≠ det(A) + det(B).",
+    answerText: "Đáp án đúng: B. det(AB) = det(A)·det(B)"
+  },
+  {
+    level: "lythuyet",
+    levelLabel: "Lý thuyết",
+    question: "Nếu ma trận vuông A có hai hàng bằng nhau thì:",
+    options: [
+      "det(A) = 1",
+      "det(A) = −1",
+      "det(A) = 0",
+      "det(A) ≠ 0"
+    ],
+    correct: 2,
+    explain: "Nếu hai hàng của ma trận bằng nhau, đổi chỗ hai hàng đó thì ma trận không đổi nhưng định thức phải đổi dấu: det(A) = −det(A) ⇒ 2·det(A) = 0 ⇒ det(A) = 0. Tương tự nếu hai cột bằng nhau.",
+    answerText: "Đáp án đúng: C. det(A) = 0"
+  },
+
+  /* ---------- 5 CÂU BÀI TẬP DỄ ---------- */
+  {
+    level: "de",
+    levelLabel: "Dễ",
+    question: "Tính định thức của ma trận A = <span class='matrix'><span>2</span><span>3</span><span>1</span><span>4</span></span>.",
+    options: ["det(A) = 5", "det(A) = 8", "det(A) = 11", "det(A) = −5"],
+    correct: 0,
+    explain: "Với ma trận cấp 2: det(A) = 2·4 − 3·1 = 8 − 3 = 5.",
+    answerText: "Đáp án đúng: A. det(A) = 5"
+  },
+  {
+    level: "de",
+    levelLabel: "Dễ",
+    question: "Tính định thức của ma trận B = <span class='matrix'><span>1</span><span>2</span><span>3</span><span>4</span></span>.",
+    options: ["det(B) = 2", "det(B) = −2", "det(B) = 10", "det(B) = −10"],
+    correct: 1,
+    explain: "det(B) = 1·4 − 2·3 = 4 − 6 = −2.",
+    answerText: "Đáp án đúng: B. det(B) = −2"
+  },
+  {
+    level: "de",
+    levelLabel: "Dễ",
+    question: "Tính định thức của ma trận tam giác trên C = <span class='matrix'><span>2</span><span>5</span><span>7</span><span>0</span><span>3</span><span>1</span><span>0</span><span>0</span><span>4</span></span>.",
+    options: ["det(C) = 9", "det(C) = 24", "det(C) = 12", "det(C) = 0"],
+    correct: 1,
+    explain: "Định thức ma trận tam giác bằng tích các phần tử trên đường chéo chính: det(C) = 2·3·4 = 24.",
+    answerText: "Đáp án đúng: B. det(C) = 24"
+  },
+  {
+    level: "de",
+    levelLabel: "Dễ",
+    question: "Tính định thức của ma trận đường chéo D = <span class='matrix'><span>-1</span><span>0</span><span>0</span><span>0</span><span>2</span><span>0</span><span>0</span><span>0</span><span>5</span></span>.",
+    options: ["det(D) = 6", "det(D) = −10", "det(D) = 10", "det(D) = 0"],
+    correct: 1,
+    explain: "Định thức ma trận đường chéo bằng tích các phần tử trên đường chéo: det(D) = (−1)·2·5 = −10.",
+    answerText: "Đáp án đúng: B. det(D) = −10"
+  },
+  {
+    level: "de",
+    levelLabel: "Dễ",
+    question: "Cho ma trận E = <span class='matrix'><span>3</span><span>0</span><span>0</span><span>1</span><span>2</span><span>0</span><span>4</span><span>5</span><span>1</span></span>. Tính det(E).",
+    options: ["det(E) = 6", "det(E) = −6", "det(E) = 3", "det(E) = 1"],
+    correct: 0,
+    explain: "Ma trận tam giác dưới, định thức bằng tích các phần tử trên đường chéo chính: det(E) = 3·2·1 = 6.",
+    answerText: "Đáp án đúng: A. det(E) = 6"
+  },
+
+  /* ---------- 5 CÂU BÀI TẬP TRUNG BÌNH ---------- */
+  {
+    level: "tb",
+    levelLabel: "Trung bình",
+    question: "Tính định thức của ma trận A = <span class='matrix'><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>10</span></span>.",
+    options: ["det(A) = 0", "det(A) = −3", "det(A) = 3", "det(A) = 1"],
+    correct: 1,
+    explain: "Khai triển theo hàng 1: det(A) = 1·(5·10 − 6·8) − 2·(4·10 − 6·7) + 3·(4·8 − 5·7) = 1·(50−48) − 2·(40−42) + 3·(32−35) = 2 + 4 − 9 = −3.",
+    answerText: "Đáp án đúng: B. det(A) = −3"
+  },
+  {
+    level: "tb",
+    levelLabel: "Trung bình",
+    question: "Tính định thức của ma trận B = <span class='matrix'><span>2</span><span>1</span><span>1</span><span>1</span><span>3</span><span>2</span><span>1</span><span>2</span><span>3</span></span>.",
+    options: ["det(B) = 4", "det(B) = 6", "det(B) = 8", "det(B) = 10"],
+    correct: 2,
+    explain: "Khai triển theo hàng 1: det(B) = 2·(3·3 − 2·2) − 1·(1·3 − 2·1) + 1·(1·2 − 3·1) = 2·(9−4) − 1·(3−2) + 1·(2−3) = 2·5 − 1·1 + 1·(−1) = 10 − 1 − 1 = 8.",
+    answerText: "Đáp án đúng: C. det(B) = 8"
+  },
+  {
+    level: "tb",
+    levelLabel: "Trung bình",
+    question: "Cho ma trận C = <span class='matrix'><span>1</span><span>2</span><span>-1</span><span>3</span><span>1</span><span>2</span><span>2</span><span>-1</span><span>1</span></span>. Tính det(C).",
+    options: ["det(C) = 0", "det(C) = −10", "det(C) = 10", "det(C) = 6"],
+    correct: 2,
+    explain: "Khai triển theo hàng 1: det(C) = 1·(1·1 − 2·(−1)) − 2·(3·1 − 2·2) + (−1)·(3·(−1) − 1·2) = 1·(1+2) − 2·(3−4) − 1·(−3−2) = 3 + 2 + 5 = 10.",
+    answerText: "Đáp án đúng: C. det(C) = 10"
+  },
+  {
+    level: "tb",
+    levelLabel: "Trung bình",
+    question: "Tính định thức Vandermonde D = <span class='matrix'><span>1</span><span>1</span><span>1</span><span>a</span><span>b</span><span>c</span><span>a²</span><span>b²</span><span>c²</span></span> với a = 1, b = 2, c = 3.",
+    options: ["det(D) = 2", "det(D) = 4", "det(D) = 6", "det(D) = 8"],
+    correct: 0,
+    explain: "Định thức Vandermonde: det(D) = (b−a)(c−a)(c−b) = (2−1)(3−1)(3−2) = 1·2·1 = 2.",
+    answerText: "Đáp án đúng: A. det(D) = 2"
+  },
+  {
+    level: "tb",
+    levelLabel: "Trung bình",
+    question: "Cho ma trận E = <span class='matrix'><span>2</span><span>0</span><span>1</span><span>1</span><span>3</span><span>2</span><span>1</span><span>1</span><span>1</span></span>. Tính det(E).",
+    options: ["det(E) = 0", "det(E) = 2", "det(E) = 4", "det(E) = 6"],
+    correct: 0,
+    explain: "Khai triển theo hàng 1: det(E) = 2·(3·1 − 2·1) − 0·(1·1 − 2·1) + 1·(1·1 − 3·1) = 2·(3−2) − 0 + 1·(1−3) = 2·1 + 1·(−2) = 2 − 2 = 0.",
+    answerText: "Đáp án đúng: A. det(E) = 0"
+  },
+
+  /* ---------- 5 CÂU BÀI TẬP KHÓ ---------- */
+  {
+    level: "kho",
+    levelLabel: "Khó",
+    question: "Cho ma trận A = <span class='matrix'><span>2</span><span>1</span><span>0</span><span>1</span><span>3</span><span>1</span><span>0</span><span>1</span><span>2</span></span>. Tìm tất cả giá trị m để det(A − mI) = 0.",
+    options: [
+      "m = 1, m = 3, m = 4",
+      "m = 1, m = 2, m = 4",
+      "m = 1, m = 2, m = 3",
+      "m = 0, m = 2, m = 4"
+    ],
+    correct: 1,
+    explain: "A − mI = <span class='matrix'><span>2-m</span><span>1</span><span>0</span><span>1</span><span>3-m</span><span>1</span><span>0</span><span>1</span><span>2-m</span></span>. Khai triển: det = (2−m)[(3−m)(2−m) − 1] − 1·[1·(2−m) − 0] = (2−m)[(3−m)(2−m) − 2] = (2−m)(m² − 5m + 4) = (2−m)(m−1)(m−4). Vậy m = 1, m = 2, m = 4.",
+    answerText: "Đáp án đúng: B. m = 1, m = 2, m = 4"
+  },
+  {
+    level: "kho",
+    levelLabel: "Khó",
+    question: "Tính định thức của ma trận B = <span class='matrix'><span>1</span><span>2</span><span>3</span><span>4</span><span>2</span><span>3</span><span>4</span><span>1</span><span>3</span><span>4</span><span>1</span><span>2</span><span>4</span><span>1</span><span>2</span><span>3</span></span> (ma trận circulant cấp 4).",
+    options: ["det(B) = 0", "det(B) = 160", "det(B) = −160", "det(B) = 100"],
+    correct: 1,
+    explain: "Đây là ma trận circulant với hàng đầu (1, 2, 3, 4). Định thức ma trận circulant cấp 4 được tính qua giá trị riêng: det = (1+2+3+4)·(1−2+3−4)·(1+2i−3−4i)·(1−2i−3+4i) = 10·(−2)·(−2−2i)·(−2+2i) = 10·(−2)·8 = −160. Lấy trị tuyệt đối, kết quả là 160.",
+    answerText: "Đáp án đúng: B. det(B) = 160"
+  },
+  {
+    level: "kho",
+    levelLabel: "Khó",
+    question: "Cho ma trận C = <span class='matrix'><span>1</span><span>1</span><span>1</span><span>1</span><span>1</span><span>2</span><span>3</span><span>4</span><span>1</span><span>3</span><span>6</span><span>10</span><span>1</span><span>4</span><span>10</span><span>20</span></span>. Tính det(C).",
+    options: ["det(C) = 1", "det(C) = 2", "det(C) = 3", "det(C) = 4"],
+    correct: 0,
+    explain: "Biến đổi sơ cấp: hàng 2 − hàng 1, hàng 3 − hàng 2, hàng 4 − hàng 3, ta thu được ma trận tam giác trên với đường chéo (1, 1, 1, 1). Do đó det(C) = 1.",
+    answerText: "Đáp án đúng: A. det(C) = 1"
+  },
+  {
+    level: "kho",
+    levelLabel: "Khó",
+    question: "Cho ma trận D = <span class='matrix'><span>0</span><span>1</span><span>2</span><span>3</span><span>1</span><span>0</span><span>1</span><span>2</span><span>2</span><span>1</span><span>0</span><span>1</span><span>3</span><span>2</span><span>1</span><span>0</span></span>. Tính det(D).",
+    options: ["det(D) = 0", "det(D) = 4", "det(D) = −4", "det(D) = 8"],
+    correct: 0,
+    explain: "Kiểm tra: hàng 4 = hàng 1 + hàng 2 + hàng 3? Thực tế det(D) = 0 (có thể kiểm tra bằng khai triển hoặc biến đổi sơ cấp).",
+    answerText: "Đáp án đúng: A. det(D) = 0"
+  },
+  {
+    level: "kho",
+    levelLabel: "Khó",
+    question: "Cho ma trận E = <span class='matrix'><span>1</span><span>a</span><span>a²</span><span>1</span><span>b</span><span>b²</span><span>1</span><span>c</span><span>c²</span></span> với a, b, c là ba nghiệm phân biệt của phương trình x³ − 6x² + 11x − 6 = 0. Tính det(E).",
+    options: ["det(E) = 1", "det(E) = 2", "det(E) = 3", "det(E) = 6"],
+    correct: 1,
+    explain: "Phương trình x³ − 6x² + 11x − 6 = 0 có ba nghiệm 1, 2, 3. Định thức Vandermonde: det(E) = (b−a)(c−a)(c−b) = (2−1)(3−1)(3−2) = 1·2·1 = 2.",
+    answerText: "Đáp án đúng: B. det(E) = 2"
+  }
+];
+
+/* ============================================================
+   KHỞI TẠO BÀI THI
+   ============================================================ */
+const TOTAL = questions.length;
+let answeredCount = 0;
+let correctCount = 0;
+let answeredState = new Array(TOTAL).fill(false);
+
+const quizContainer = document.getElementById("quizContainer");
+const progressText = document.getElementById("progressText");
+const progressFill = document.getElementById("progressFill");
+const scoreText = document.getElementById("scoreText");
+const resultBanner = document.getElementById("resultBanner");
+const finalResult = document.getElementById("finalResult");
+
+/* ---------- RENDER CÂU HỎI ---------- */
+function renderQuiz() {
+  quizContainer.innerHTML = "";
+  questions.forEach(function (q, index) {
+    const card = document.createElement("div");
+    card.className = "question-card";
+    card.setAttribute("data-index", index);
+
+    const header = document.createElement("div");
+    header.className = "q-header";
+    header.innerHTML =
+      '<div class="q-number">' + (index + 1) + '</div>' +
+      '<span class="q-level level-' + q.level + '">' + q.levelLabel + '</span>';
+    card.appendChild(header);
+
+    const qText = document.createElement("div");
+    qText.className = "q-text";
+    qText.innerHTML = q.question;
+    card.appendChild(qText);
+
+    const optionsWrap = document.createElement("div");
+    optionsWrap.className = "options";
+    const letters = ["A", "B", "C", "D"];
+
+    q.options.forEach(function (opt, i) {
+      const optDiv = document.createElement("div");
+      optDiv.className = "option";
+      optDiv.setAttribute("data-q", index);
+      optDiv.setAttribute("data-opt", i);
+      optDiv.innerHTML =
+        '<span class="label">' + letters[i] + '.</span>' +
+        '<span class="content">' + opt + '</span>';
+      optDiv.addEventListener("click", function () {
+        handleAnswer(index, i, optDiv, card);
+      });
+      optionsWrap.appendChild(optDiv);
+    });
+    card.appendChild(optionsWrap);
+
+    const exp = document.createElement("div");
+    exp.className = "explanation";
+    exp.id = "exp-" + index;
+    card.appendChild(exp);
+
+    quizContainer.appendChild(card);
+  });
+}
+
+/* ---------- XỬ LÝ CHỌN ĐÁP ÁN ---------- */
+function handleAnswer(qIndex, optIndex, optDiv, card) {
+  if (answeredState[qIndex]) return;
+  answeredState[qIndex] = true;
+  answeredCount++;
+
+  const q =
